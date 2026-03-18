@@ -317,11 +317,41 @@ let state = {
   subject: '', angle: 'eye-level shot, straight on front view',
   env: '', mat: '', ui: '', epoch: '', artist: '', light: '',
   color: '', lens: '', render: '', mood: '',
-  ar: '--ar 4:5', style: '--style raw', stylize: '--s 100'
+  ar: '--ar 4:5', style: '--style raw', stylize: '--s 100',
+  target: 'midjourney' // 'midjourney' | 'gemini'
 };
 
 const MODULE_KEYS = MODULES_DATA.map(m => m.id);
 const TOTAL_PARAMS = MODULE_KEYS.length + 1; // +1 subject
+
+// ============================================================
+// AI TARGET MAPS — converts MJ syntax to Gemini natural language
+// ============================================================
+const AR_MAP_GEMINI = {
+  '--ar 4:5':  'portrait 4:5 format',
+  '--ar 16:9': 'widescreen 16:9 format',
+  '--ar 9:16': 'vertical 9:16 format',
+  '--ar 1:1':  'square 1:1 format',
+  '--ar 21:9': 'ultrawide cinematic 21:9 format',
+  '--ar 3:2':  '3:2 landscape format',
+  '--ar 2:3':  '2:3 portrait format',
+};
+
+const STYLE_MAP_GEMINI = {
+  '--style raw':        'photorealistic',
+  '--niji 6':           'anime illustration style',
+  '--style expressive': 'expressive artistic style',
+  '':                   '',
+};
+
+function stylizeToGemini(mjParam) {
+  const n = parseInt(mjParam.replace('--s ', ''), 10);
+  if (isNaN(n) || n <= 100) return '';
+  if (n <= 300) return 'slightly stylized';
+  if (n <= 600) return 'moderately stylized';
+  if (n <= 900) return 'highly stylized';
+  return 'maximum artistic stylization';
+}
 
 // ============================================================
 // DOM REFS (populated after DOMContentLoaded)
@@ -346,8 +376,24 @@ function compilePrompt() {
   if (state.artist)   parts.push(state.artist);
   if (state.render)   parts.push('Render Style: ' + state.render);
 
+  if (parts.length === 0) return '';
+
+  if (state.target === 'gemini') {
+    // Gemini Imagen — natural language only, no -- flags
+    const techParts = [];
+    const arNL = AR_MAP_GEMINI[state.ar];
+    if (arNL) techParts.push(arNL);
+    const styleNL = STYLE_MAP_GEMINI[state.style];
+    if (styleNL) techParts.push(styleNL);
+    const stylizeNL = stylizeToGemini(state.stylize);
+    if (stylizeNL) techParts.push(stylizeNL);
+    const tech = techParts.join(', ');
+    return parts.join('. ') + (tech ? '. ' + tech : '') + '.';
+  }
+
+  // Midjourney — standard -- flag syntax
   const tech = [state.ar, state.style, state.stylize].filter(Boolean).join(' ');
-  return parts.length === 0 ? '' : parts.join('. ') + (tech ? ', ' + tech : '');
+  return parts.join('. ') + (tech ? ', ' + tech : '');
 }
 
 function countActive() {
@@ -361,6 +407,7 @@ function updateUI() {
   const active = countActive();
   const pct = Math.round((active / TOTAL_PARAMS) * 100);
   const tokens = prompt ? Math.ceil(prompt.length / 4) : 0;
+  const isMJ = state.target === 'midjourney';
 
   // Console output
   if (prompt) {
@@ -377,13 +424,25 @@ function updateUI() {
   DOM.progressFill.style.width = pct + '%';
   DOM.progressCount.textContent = active + ' / ' + TOTAL_PARAMS;
 
-  // Token count
+  // Token count — MJ limit ~1000 tok, Gemini Imagen ~120 tok (480 chars)
   DOM.tokenCount.textContent = tokens > 0 ? '~' + tokens + ' tok' : '—';
   DOM.tokenCount.className = 'token-count';
+  const warnLimit = isMJ ? 700 : 100;
+  const overLimit = isMJ ? 1000 : 120;
   if (tokens === 0) DOM.tokenCount.classList.add('safe');
-  else if (tokens > 1000) DOM.tokenCount.classList.add('over');
-  else if (tokens > 700) DOM.tokenCount.classList.add('warn');
+  else if (tokens > overLimit) DOM.tokenCount.classList.add('over');
+  else if (tokens > warnLimit) DOM.tokenCount.classList.add('warn');
   else DOM.tokenCount.classList.add('safe');
+
+  // Token label platform name
+  if (DOM.tokenLabel) {
+    DOM.tokenLabel.textContent = isMJ ? '~Token Midjourney' : '~Token Gemini Imagen';
+  }
+
+  // Tech params section: show/dim based on target
+  if (DOM.techParamsSection) {
+    DOM.techParamsSection.classList.toggle('gemini-mode', !isMJ);
+  }
 }
 
 // ============================================================
@@ -501,6 +560,7 @@ function resetAll() {
   state.style = '--style raw';
   state.stylize = '--s 100';
   state.angle = 'eye-level shot, straight on front view';
+  // target is intentionally preserved across resets
 
   DOM.subjectInput.value = '';
   DOM.arSelect.value = '--ar 4:5';
@@ -678,29 +738,41 @@ function determineAngle() {
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   DOM = {
-    subjectInput:   document.getElementById('subjectInput'),
-    output:         document.getElementById('promptOutput'),
-    copyBtn:        document.getElementById('copyBtn'),
-    copyText:       document.getElementById('copyText'),
-    clearBtn:       document.getElementById('clearBtn'),
-    randomBtn:      document.getElementById('randomBtn'),
-    shareBtn:       document.getElementById('shareBtn'),
-    arSelect:       document.getElementById('arSelect'),
-    styleSelect:    document.getElementById('styleSelect'),
-    stylizeRange:   document.getElementById('stylizeRange'),
-    stylizeVal:     document.getElementById("stylizeValBadge"),
-    stylizeValLabel: document.getElementById("stylizeVal"),
-    angleLabel:     document.getElementById('angleLabel'),
-    progressFill:   document.getElementById('progressFill'),
-    progressCount:  document.getElementById('progressCount'),
-    tokenCount:     document.getElementById('tokenCount'),
-    presetsGrid:    document.getElementById('presetsGrid'),
-    modulesGrid:    document.getElementById('dynamicModulesGrid'),
+    subjectInput:     document.getElementById('subjectInput'),
+    output:           document.getElementById('promptOutput'),
+    copyBtn:          document.getElementById('copyBtn'),
+    copyText:         document.getElementById('copyText'),
+    clearBtn:         document.getElementById('clearBtn'),
+    randomBtn:        document.getElementById('randomBtn'),
+    shareBtn:         document.getElementById('shareBtn'),
+    arSelect:         document.getElementById('arSelect'),
+    styleSelect:      document.getElementById('styleSelect'),
+    stylizeRange:     document.getElementById('stylizeRange'),
+    stylizeVal:       document.getElementById("stylizeValBadge"),
+    stylizeValLabel:  document.getElementById("stylizeVal"),
+    angleLabel:       document.getElementById('angleLabel'),
+    progressFill:     document.getElementById('progressFill'),
+    progressCount:    document.getElementById('progressCount'),
+    tokenCount:       document.getElementById('tokenCount'),
+    tokenLabel:       document.getElementById('tokenLabel'),
+    presetsGrid:      document.getElementById('presetsGrid'),
+    modulesGrid:      document.getElementById('dynamicModulesGrid'),
+    techParamsSection: document.getElementById('techParamsSection'),
+    targetBtns:       document.querySelectorAll('.target-btn'),
   };
 
   buildPresets();
   buildModules();
   init3D();
+
+  // AI Target selector
+  DOM.targetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.target = btn.dataset.target;
+      DOM.targetBtns.forEach(b => b.classList.toggle('active', b.dataset.target === state.target));
+      updateUI();
+    });
+  });
 
   // Subject
   DOM.subjectInput.addEventListener('input', e => {

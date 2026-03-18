@@ -820,6 +820,118 @@ body::after {
 ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
 
 /* ============================================================
-   SELECTION
+   AI TARGET SELECTOR
    ============================================================ */
-::selection { background: rgba(232,197,71,0.22); color: var(--text-1); }
+.target-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.target-label {
+  font-family: var(--ff-mono);
+  font-size: 0.6rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.target-pills {
+  display: flex;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.target-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-3);
+  font-family: var(--ff-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.target-btn svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
+.target-btn:hover {
+  color: var(--text-2);
+  border-color: var(--border-md);
+  background: var(--bg-elevated);
+}
+
+.target-btn.active {
+  background: var(--gold-dim);
+  border-color: rgba(232,197,71,0.4);
+  color: var(--gold);
+}
+
+/* Gemini active — uses a blue-tinted accent instead of gold */
+.target-btn[data-target="gemini"].active {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: rgba(96, 165, 250, 0.4);
+  color: #93c5fd;
+}
+
+/* ============================================================
+   GEMINI MODE — tech params section indicator
+   ============================================================ */
+.gemini-note {
+  display: none;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: rgba(96, 165, 250, 0.06);
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.875rem;
+  font-size: 0.75rem;
+  color: #93c5fd;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.gemini-note svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #60a5fa;
+}
+
+.gemini-note code {
+  font-family: var(--ff-mono);
+  font-size: 0.7rem;
+  background: rgba(96, 165, 250, 0.1);
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  color: #93c5fd;
+}
+
+/* Show note and dim controls when Gemini is active */
+#techParamsSection.gemini-mode .gemini-note {
+  display: flex;
+}
+
+#techParamsSection.gemini-mode .param-grid {
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
+}
+

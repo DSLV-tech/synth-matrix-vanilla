@@ -92,7 +92,7 @@
         <div id="dynamicModulesGrid"></div>
 
         <!-- PARAMETRI TECNICI -->
-        <section class="section-card">
+        <section class="section-card" id="techParamsSection">
           <div class="section-header">
             <div class="section-num">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -100,6 +100,10 @@
             <h2 class="section-title">Parametri Tecnici — Midjourney / Imagen</h2>
           </div>
           <p class="section-desc">Controlla aspect ratio, stile di rendering e intensità stylization.</p>
+          <div class="gemini-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Modalità Gemini Imagen attiva — i parametri vengono convertiti in linguaggio naturale. I flag <code>--ar</code>, <code>--style</code> e <code>--s</code> non verranno inclusi nell'output.
+          </div>
           <div class="param-grid">
 
             <div>
@@ -168,6 +172,21 @@
             </div>
           </div>
 
+          <!-- AI Target Selector -->
+          <div class="target-selector">
+            <span class="target-label">Target AI</span>
+            <div class="target-pills">
+              <button class="target-btn active" data-target="midjourney">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                Midjourney
+              </button>
+              <button class="target-btn" data-target="gemini">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Gemini Imagen
+              </button>
+            </div>
+          </div>
+
           <!-- Desktop header -->
           <div class="preview-header">
             <div class="preview-header-title">
@@ -186,7 +205,7 @@
 
           <!-- Token counter -->
           <div class="token-row">
-            <span class="token-label">~Token Midjourney</span>
+            <span class="token-label" id="tokenLabel">~Token Midjourney</span>
             <span class="token-count safe" id="tokenCount">—</span>
           </div>
 
